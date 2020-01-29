@@ -1,0 +1,6 @@
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\bin\Debug\netcoreapp3.1\StorageService.deps.json
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\bin\Debug\netcoreapp3.1\StorageService.dll
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\bin\Debug\netcoreapp3.1\StorageService.pdb
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\obj\Debug\netcoreapp3.1\StorageService.csprojAssemblyReference.cache
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\obj\Debug\netcoreapp3.1\StorageService.dll
+C:\Users\a.hamza\source\repos\StorageDemo\StorageService\obj\Debug\netcoreapp3.1\StorageService.pdb
