@@ -22,5 +22,10 @@ namespace StorageService.Services
     {
       return _configuration["appsettings:connectionString"];
     }
+
+    public string GetContainerName()
+    {
+      return _configuration["appsettings:containerName"];
+    }
   }
 }

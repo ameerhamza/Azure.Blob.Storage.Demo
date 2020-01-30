@@ -24,6 +24,7 @@ namespace StorageDemo
       return new ServiceCollection()
             .AddSingleton<IAppHost, AppHost>()
             .AddSingleton<IConfigurationService, ConfigurationService>()
+            .AddSingleton<IStorageHelperService, StorageHelperService>()
             .BuildServiceProvider();
     }
   }
