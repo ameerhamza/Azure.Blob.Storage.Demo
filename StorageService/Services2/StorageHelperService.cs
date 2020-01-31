@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using StorageService.Contracts;
 
 namespace StorageService.Services
@@ -24,7 +25,7 @@ namespace StorageService.Services
 
     public async Task<bool> CheckIfBlobExistsAsync(string blobName)
     {
-      var client = await GetContainerClient();
+      var client = await GetContainerClientAsync();
       var blobClient = client.GetBlobClient(blobName);
 
       return await blobClient.ExistsAsync();
@@ -32,7 +33,7 @@ namespace StorageService.Services
 
     public async Task UploadVideoAsync(byte[] videoByteArray, string blobName, string title = null, string desc = null)
     {
-      var client = await GetContainerClient();
+      var client = await GetContainerClientAsync();
       var blobClient = client.GetBlobClient(blobName);
 
       var metadata = GetMetadata(title, desc);
@@ -45,10 +46,9 @@ namespace StorageService.Services
 
     public async Task<IEnumerable<BlobItem>> ListVideoBlobsAsync(string prefix = null)
     {
-      var containerClient = await GetContainerClient();
+      var containerClient = await GetContainerClientAsync();
       var blobs = containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.None, prefix);
       var videos = new List<BlobItem>();
-
       await foreach (var blobItem in blobs)
       {
         videos.Add(blobItem);
@@ -57,10 +57,18 @@ namespace StorageService.Services
       return videos;
     }
 
+    public async Task<BlobProperties> GetBlobPropertiesAsync(string blobName)
+    {
+
+      var containerClient = await GetContainerClientAsync();
+      var blobClient = containerClient.GetBlobBaseClient(blobName);
+
+      return await blobClient.GetPropertiesAsync();
+    }
 
     public async Task DownloadVideoAsync(BlobItem blob, Stream targetStream)
     {
-      var containerClient = await GetContainerClient();
+      var containerClient = await GetContainerClientAsync();
       var blobClient = containerClient.GetBlobClient(blob.Name);
       var blobDownload = await blobClient.DownloadAsync();
 
@@ -69,13 +77,23 @@ namespace StorageService.Services
 
     public async Task DeleteVideoAsync(string blobName)
     {
-      var containerClient = await GetContainerClient();
+      var containerClient = await GetContainerClientAsync();
       var blobClient = containerClient.GetBlobClient(blobName);
       await blobClient.DeleteAsync();
     }
 
+    public async Task UpdateBlobMetadata(string blobName, string title, string desc)
+    {
+      var containerClient = await GetContainerClientAsync();
+      var blobClient = containerClient.GetBlobClient(blobName);
+      var metadata = new Dictionary<string, string>();
+      metadata.Add("Title", title);
+      metadata.Add("Description", desc);
 
-    public async Task<BlobContainerClient> GetContainerClient()
+      await blobClient.SetMetadataAsync(metadata);
+    }
+
+    public async Task<BlobContainerClient> GetContainerClientAsync()
     {
       if (_containerClient == null)
       {
@@ -84,6 +102,21 @@ namespace StorageService.Services
       }
 
       return _containerClient;
+    }
+
+    public async Task<BlobLease> AcquireLease(string blobName)
+    {
+      var conatiner = await GetContainerClientAsync();
+      var blobLeaseClient = conatiner.GetBlobLeaseClient();
+      return await blobLeaseClient.AcquireAsync(new TimeSpan(0, 1, 0));
+    }
+
+    public async Task ReleaseLease(string blobName, string leaseId)
+    {
+      var conatiner = await GetContainerClientAsync();
+      var blobLeaseClient = conatiner.GetBlobLeaseClient(leaseId);
+
+      await blobLeaseClient.ReleaseAsync();
     }
 
     private static Dictionary<string, string> GetMetadata(string title, string desc)
