@@ -7,9 +7,10 @@ namespace StorageService.Contracts
 {
   public interface IStorageHelperService
   {
-    Task UploadVideoAsync(byte[] videoByteArray, string blobName);
     Task<bool> CheckIfBlobExistsAsync(string blobName);
     Task<IEnumerable<BlobItem>> ListVideoBlobsAsync(string prefix = null);
     Task DownloadVideoAsync(BlobItem blob, Stream targetStream);
+    Task DeleteVideoAsync(string blobName);
+    Task UploadVideoAsync(byte[] videoByteArray, string blobName, string title = null, string desc = null);
   }
 }

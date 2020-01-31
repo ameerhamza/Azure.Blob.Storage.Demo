@@ -30,19 +30,18 @@ namespace StorageService.Services
       return await blobClient.ExistsAsync();
     }
 
-    public async Task UploadVideoAsync(byte[] videoByteArray, string blobName)
+    public async Task UploadVideoAsync(byte[] videoByteArray, string blobName, string title = null, string desc = null)
     {
       var client = await GetContainerClient();
-      var blobs = client.GetBlobsAsync(BlobTraits.None, BlobStates.None, blobName);
-
-
       var blobClient = client.GetBlobClient(blobName);
 
+      var metadata = GetMetadata(title, desc);
       await blobClient.UploadAsync(new MemoryStream(videoByteArray), new BlobHttpHeaders()
       {
         ContentType = "video/mp4"
-      });
+      }, metadata);
     }
+
 
     public async Task<IEnumerable<BlobItem>> ListVideoBlobsAsync(string prefix = null)
     {
@@ -61,15 +60,18 @@ namespace StorageService.Services
 
     public async Task DownloadVideoAsync(BlobItem blob, Stream targetStream)
     {
-      var blobClient = _containerClient.GetBlobClient(blob.Name);
+      var containerClient = await GetContainerClient();
+      var blobClient = containerClient.GetBlobClient(blob.Name);
       var blobDownload = await blobClient.DownloadAsync();
 
       await blobDownload.Value.Content.CopyToAsync(targetStream);
     }
 
-    public async Task DeleteVideoAsync(BlobItem blobItem)
+    public async Task DeleteVideoAsync(string blobName)
     {
-      // TODO: Delete the Blob from Blob Storage
+      var containerClient = await GetContainerClient();
+      var blobClient = containerClient.GetBlobClient(blobName);
+      await blobClient.DeleteAsync();
     }
 
 
@@ -83,5 +85,17 @@ namespace StorageService.Services
 
       return _containerClient;
     }
+
+    private static Dictionary<string, string> GetMetadata(string title, string desc)
+    {
+      var metaData = new Dictionary<string, string>();
+      if (!string.IsNullOrEmpty(title))
+        metaData.Add("Title", title);
+      if (!string.IsNullOrEmpty(desc))
+        metaData.Add("Description", desc);
+
+      return metaData;
+    }
+
   }
 }
